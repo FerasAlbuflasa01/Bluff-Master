@@ -2,8 +2,8 @@ body {
   margin: 0;
   display: grid;
   height: 100vh;
-  grid-template-columns: repeat(2, 4fr) repeat(1, 1fr) repeat(1, 4fr);
-  grid-template-rows: repeat(1, 4fr) repeat(1, 5fr) repeat(1, 1fr);
+  grid-template-columns: repeat(1, 1fr) repeat(1, 1fr) repeat(1, 1fr);
+  grid-template-rows: repeat(1, 1fr) repeat(1, 2fr) repeat(1, 1fr);
 }
 ul {
   list-style: none;
@@ -31,13 +31,14 @@ ul {
 }
 
 #player1 {
-  display: grid;
   grid-row-start: 3;
   grid-column-start: 2;
+  background-color: rgb(0, 255, 21);
 }
 
 #player1_info {
   display: flex;
+  align-self: center;
 }
 #player2 {
   grid-row-start: 2;
@@ -59,6 +60,19 @@ ul {
 #player2_hand {
   background-color: aqua;
 }
+#player3 {
+  grid-row-start: 1;
+  grid-column-start: 2;
+  display: flex;
+}
+#player3_hand {
+  background-color: aqua;
+  align-self: center;
+  text-align: right;
+  margin-right: 60px;
+  display: flex;
+  flex-direction: column-reverse;
+}
 
 img {
   height: 130px;
@@ -66,11 +80,13 @@ img {
 }
 #discarded_cards,
 #player1_hand ul,
-#player2_hand ul {
+#player2_hand ul,
+#player3_hand ul {
   display: flex;
 }
 #discarded_cards li,
 #player1_hand li,
-#player2_hand li {
+#player2_hand li,
+#player3_hand li {
   margin: 10px;
 }
