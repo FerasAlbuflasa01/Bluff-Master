@@ -39,18 +39,23 @@ ul {
   display: flex;
   justify-content: space-between;
 }
-/* #player2 {
+#player2 {
   grid-row-start: 2;
   grid-column-start: 3;
   display: grid;
-  grid-template-columns: 4fr 4fr;
+  grid-template-columns: 2fr 4fr;
 }
 #player2_info {
   transform: rotate(-90deg);
   grid-column-start: 1;
+  align-self: center;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
+  position: relative;
+  left: 30px;
 }
 #player2_hand {
+  transform: rotate(-90deg);
+  align-self: center;
   grid-column-start: 2;
-} */
+}
