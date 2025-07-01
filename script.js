@@ -4,6 +4,7 @@
 // document.querySelector('#player1_hand_card').children[0].children[0].src
 let deck = []
 let rankCards = []
+let players = []
 let play = false
 
 class card {
@@ -22,6 +23,7 @@ class card {
     return this.backCard
   }
 }
+
 let jCard = new card('J', 'cards/J.jpg')
 let qCard = new card('Q', 'cards/Q.jpg')
 let kCard = new card('K', 'cards/k.jpg')
@@ -61,18 +63,47 @@ class player {
   }
 }
 const deckBuilder = () => {
-  let randomIndex = 0
   rankCards.forEach((card) => {
-    randomIndex = Math.floor(Math.random() * 16)
-    for (i = 0; i < 4; i++) {
-      if (!deck[randomIndex]) {
-        deck[randomIndex] = card
-      }
+    for (let i = 0; i < 5; i++) {
+      deck.push(card)
     }
+  })
+  rankCards.push(jokerCard)
+  deck.push(rankCards[4])
+}
+const shuffelDeck = () => {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const randomIndex = Math.floor(Math.random() * (i + 1))
+    let currentCard = deck[i]
+    deck[i] = deck[randomIndex]
+    deck[randomIndex] = currentCard
+  }
+}
+const deal = (players) => {
+  let hands = []
+
+  players.forEach((player) => {
+    for (let i = 0; i < 5; i++) {
+      hands.push(deck[i])
+    }
+    deck = deck.slice(5)
+    player.setPlayerHand(hands)
+    hands = []
   })
 }
 deckBuilder()
-console.log(deck)
+shuffelDeck()
+// console.log(deck)
+let playerOne = new player()
+let playerTwo = new player()
+players = [playerOne, playerTwo]
+deal(players)
+let arr1 = players[0].getPlayerHand()
+let arr2 = players[1].getPlayerHand()
+console.log('player one' + arr1[0].getRank())
+console.log('player two' + arr2[0].getRank())
+console.log(deck.length)
+
 // playCardsButton.addEventListener(() => {
 //   console.log(playedCards)
 // })
