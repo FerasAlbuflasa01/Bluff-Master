@@ -1,7 +1,7 @@
 // const playerOneHand = document.querySelector('#player1_hand')
 // const playedCards = document.querySelector('#discarded_cards')
 // const playCardsButton = document.querySelector('#play')
-// document.querySelector('#player1_hand_card').children[0].children[0].src
+let playerOneHand = document.querySelector('#player1_hand_card')
 let deck = []
 let rankCards = []
 let players = []
@@ -91,8 +91,21 @@ const deal = (players) => {
     hands = []
   })
 }
+const displayPlayerHand = (playerHandHtml, player) => {
+  let playerHand = player.getPlayerHand()
+  playerHand.forEach((card) => {
+    let cardElement = document.createElement('li')
+    let cardImageElement = document.createElement('img')
+    cardImageElement.src = card.getCardImage()
+    cardImageElement.alt = ''
+    cardElement.appendChild(cardImageElement)
+    playerHandHtml.appendChild(cardElement)
+  })
+}
 deckBuilder()
 shuffelDeck()
+shuffelDeck()
+
 // console.log(deck)
 let playerOne = new player()
 let playerTwo = new player()
@@ -104,6 +117,7 @@ console.log('player one' + arr1[0].getRank())
 console.log('player two' + arr2[0].getRank())
 console.log(deck.length)
 
+displayPlayerHand(playerOneHand, players[0])
 // playCardsButton.addEventListener(() => {
 //   console.log(playedCards)
 // })
