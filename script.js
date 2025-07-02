@@ -1,18 +1,22 @@
 // const playerOneHand = document.querySelector('#player1_hand')
 // const playedCards = document.querySelector('#discarded_cards')
-// const playCardsButton = document.querySelector('#play')
-let playerOneHand = document.querySelector('#player1_hand_card')
+const playCardsButton = document.querySelector('#play')
+const playerOneHand = document.querySelector('#player1_hand_card')
+const playerTwoHand = document.querySelector('#player2_hand_card')
+const playerThreeHand = document.querySelector('#player3_hand_card')
+const playerFourHand = document.querySelector('#player4_hand_card')
+const discardArea = document.querySelector('#discarded_cards')
 let deck = []
 let rankCards = []
 let players = []
 let discardedCards = ['', '', '', '', '']
-let play = false
+let played = false
 
 class card {
   constructor(rank, cardImage) {
     this.cardImage = cardImage
     this.rank = rank
-    this.backCard = 'cards/backGround.jpg'
+    this.backCard = 'cards/backCard.jpg'
   }
   getRank = () => {
     return this.rank
@@ -20,7 +24,7 @@ class card {
   getCardImage = () => {
     return this.cardImage
   }
-  getBackGround = () => {
+  getBackCardImage = () => {
     return this.backCard
   }
 }
@@ -32,11 +36,12 @@ let aceCard = new card('ACE', 'cards/ace.png')
 let jokerCard = new card('JOKER', 'cards/joker.jpg')
 rankCards = [jCard, qCard, kCard, aceCard]
 class player {
-  constructor(bot) {
+  constructor(bot, playerHandHtml) {
     this.health = 3
     this.playerHand = []
     this.winCounter = 0
     this.bot = bot
+    this.playerHandHtml = playerHandHtml
   }
   setWinCounter = (winCounter) => {
     this.winCounter = winCounter
@@ -44,6 +49,9 @@ class player {
 
   setPlayerHand = (hand) => {
     this.playerHand = hand
+  }
+  getPlayerHandHtml = () => {
+    return this.playerHandHtml
   }
 
   getPlayerHand = () => {
@@ -102,32 +110,19 @@ const displayPlayerHand = (playerHandHtml, player) => {
     let cardElement = document.createElement('li')
 
     let cardImageElement = document.createElement('img')
+    if (player.isBot()) {
+      cardImageElement.src = card.getBackCardImage()
+    } else {
+      cardImageElement.src = card.getCardImage()
+    }
 
-    cardImageElement.src = card.getCardImage()
     cardImageElement.alt = ''
     cardElement.setAttribute('id', card.getRank())
     cardElement.appendChild(cardImageElement)
     playerHandHtml.appendChild(cardElement)
   })
 }
-deckBuilder()
-shuffelDeck()
-shuffelDeck()
 
-let playerOne = new player(false)
-let playerTwo = new player(true)
-let playerThree = new player(true)
-let playerFour = new player(true)
-players = [playerOne, playerTwo, playerThree, playerFour]
-deal(players)
-let arr1 = players[0].getPlayerHand()
-let arr2 = players[1].getPlayerHand()
-players.forEach((player) => {
-  console.log(player.getPlayerHand())
-})
-console.log(deck.length)
-
-displayPlayerHand(playerOneHand, players[0])
 const selectCards = (player) => {
   discardedCards = ['', '', '', '', '']
   if (player.isBot()) {
@@ -141,20 +136,67 @@ const selectCards = (player) => {
     }
     console.log(discardedCards)
   }
-  let listElement = [...playerOneHand.children]
-  listElement.forEach((li, index) => {
-    li.children[0].addEventListener('click', () => {
-      if (discardedCards[index] === '') {
-        discardedCards[index] = li.id
-      } else if (discardedCards[index] === li.id) {
-        discardedCards[index] = ''
-      }
-    })
+}
+
+const displayPlayedCards = () => {
+  discardedCards.forEach((card) => {
+    if (card) {
+      rankCards.forEach((rankCard) => {
+        if (rankCard.getRank() === card) {
+          let cardElement = document.createElement('li')
+
+          let cardImageElement = document.createElement('img')
+
+          cardImageElement.src = rankCard.getBackCardImage()
+
+          cardImageElement.alt = ''
+          cardElement.setAttribute('id', rankCard.getRank())
+          cardElement.appendChild(cardImageElement)
+          discardArea.appendChild(cardElement)
+        }
+      })
+    }
   })
 }
 
-selectCards(players[1])
-selectCards(players[2])
-selectCards(players[3])
+deckBuilder()
+shuffelDeck()
+shuffelDeck()
 
-// playCardsButton.addEventListener(() => {})
+let playerOne = new player(false, playerOneHand)
+let playerTwo = new player(true, playerTwoHand)
+let playerThree = new player(true, playerThreeHand)
+let playerFour = new player(true, playerFourHand)
+players = [playerOne, playerTwo, playerThree, playerFour]
+deal(players)
+let arr1 = players[0].getPlayerHand()
+let arr2 = players[1].getPlayerHand()
+players.forEach((player) => {
+  console.log(player.getPlayerHand())
+})
+console.log(deck.length)
+players.forEach((player) => {
+  displayPlayerHand(player.getPlayerHandHtml(), player)
+})
+selectCards(players[1])
+displayPlayedCards()
+console.log(`played cards ${discardedCards}`)
+//
+// eventListeners
+let listElement = [...playerOneHand.children]
+
+listElement.forEach((li, index) => {
+  li.children[0].addEventListener('click', () => {
+    console.log('hi')
+    if (discardedCards[index] === '') {
+      discardedCards[index] = li.id
+    } else if (discardedCards[index] === li.id) {
+      discardedCards[index] = ''
+    }
+    console.log(discardedCards)
+  })
+})
+playCardsButton.addEventListener('click', () => {
+  displayPlayedCards()
+  console.log(`played cards ${discardedCards}`)
+})
