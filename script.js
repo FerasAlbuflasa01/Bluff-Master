@@ -5,6 +5,7 @@ let playerOneHand = document.querySelector('#player1_hand_card')
 let deck = []
 let rankCards = []
 let players = []
+let discardedCards = ['', '', '', '', '']
 let play = false
 
 class card {
@@ -95,9 +96,12 @@ const displayPlayerHand = (playerHandHtml, player) => {
   let playerHand = player.getPlayerHand()
   playerHand.forEach((card) => {
     let cardElement = document.createElement('li')
+
     let cardImageElement = document.createElement('img')
+
     cardImageElement.src = card.getCardImage()
     cardImageElement.alt = ''
+    cardElement.setAttribute('id', card.getRank())
     cardElement.appendChild(cardImageElement)
     playerHandHtml.appendChild(cardElement)
   })
@@ -106,18 +110,27 @@ deckBuilder()
 shuffelDeck()
 shuffelDeck()
 
-// console.log(deck)
 let playerOne = new player()
 let playerTwo = new player()
 players = [playerOne, playerTwo]
 deal(players)
 let arr1 = players[0].getPlayerHand()
 let arr2 = players[1].getPlayerHand()
-console.log('player one' + arr1[0].getRank())
-console.log('player two' + arr2[0].getRank())
-console.log(deck.length)
 
 displayPlayerHand(playerOneHand, players[0])
-// playCardsButton.addEventListener(() => {
-//   console.log(playedCards)
-// })
+const selectCards = () => {
+  let listElement = [...playerOneHand.children]
+  listElement.forEach((li, index) => {
+    li.children[0].addEventListener('click', () => {
+      if (discardedCards[index] === '') {
+        discardedCards[index] = li.id
+      } else if (discardedCards[index] === li.id) {
+        discardedCards[index] = ''
+      }
+      console.log(discardedCards)
+    })
+  })
+}
+
+console.log(discardedCards)
+playCardsButton.addEventListener(() => {})
