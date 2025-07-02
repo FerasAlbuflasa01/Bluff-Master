@@ -32,10 +32,11 @@ let aceCard = new card('ACE', 'cards/ace.png')
 let jokerCard = new card('JOKER', 'cards/joker.jpg')
 rankCards = [jCard, qCard, kCard, aceCard]
 class player {
-  constructor() {
+  constructor(bot) {
     this.health = 3
     this.playerHand = []
     this.winCounter = 0
+    this.bot = bot
   }
   setWinCounter = (winCounter) => {
     this.winCounter = winCounter
@@ -53,6 +54,9 @@ class player {
   }
   getWinCounter = () => {
     return this.winCounter
+  }
+  isBot = () => {
+    return this.bot
   }
   decrmentHealth = () => {
     this.health--
@@ -110,15 +114,33 @@ deckBuilder()
 shuffelDeck()
 shuffelDeck()
 
-let playerOne = new player()
-let playerTwo = new player()
-players = [playerOne, playerTwo]
+let playerOne = new player(false)
+let playerTwo = new player(true)
+let playerThree = new player(true)
+let playerFour = new player(true)
+players = [playerOne, playerTwo, playerThree, playerFour]
 deal(players)
 let arr1 = players[0].getPlayerHand()
 let arr2 = players[1].getPlayerHand()
+players.forEach((player) => {
+  console.log(player.getPlayerHand())
+})
+console.log(deck.length)
 
 displayPlayerHand(playerOneHand, players[0])
-const selectCards = () => {
+const selectCards = (player) => {
+  discardedCards = ['', '', '', '', '']
+  if (player.isBot()) {
+    let numOfCards = Math.floor(Math.random() * 5) + 1
+    for (let i = 0; i < numOfCards; i++) {
+      let indexSelectCard = Math.floor(Math.random() * 5)
+      let botHand = player.getPlayerHand()
+      if (discardedCards[i] === '') {
+        discardedCards[i] = botHand[indexSelectCard].getRank()
+      }
+    }
+    console.log(discardedCards)
+  }
   let listElement = [...playerOneHand.children]
   listElement.forEach((li, index) => {
     li.children[0].addEventListener('click', () => {
@@ -127,10 +149,12 @@ const selectCards = () => {
       } else if (discardedCards[index] === li.id) {
         discardedCards[index] = ''
       }
-      console.log(discardedCards)
     })
   })
 }
 
-console.log(discardedCards)
-playCardsButton.addEventListener(() => {})
+selectCards(players[1])
+selectCards(players[2])
+selectCards(players[3])
+
+// playCardsButton.addEventListener(() => {})
