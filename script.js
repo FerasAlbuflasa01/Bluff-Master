@@ -69,6 +69,10 @@ class player {
   decrmentHealth = () => {
     this.health--
   }
+  removeCard = (index) => {
+    this.playerHand.splice(index, 1)
+  }
+
   restPlayer = () => {
     this.health = 3
     this.playerHand = []
@@ -111,7 +115,7 @@ const displayPlayerHand = (playerHandHtml, player) => {
 
     let cardImageElement = document.createElement('img')
     if (player.isBot()) {
-      cardImageElement.src = card.getBackCardImage()
+      cardImageElement.src = card.getCardImage()
     } else {
       cardImageElement.src = card.getCardImage()
     }
@@ -127,14 +131,19 @@ const selectCards = (player) => {
   discardedCards = ['', '', '', '', '']
   if (player.isBot()) {
     let numOfCards = Math.floor(Math.random() * 5) + 1
+    console.log(numOfCards)
     for (let i = 0; i < numOfCards; i++) {
-      let indexSelectCard = Math.floor(Math.random() * 5)
       let botHand = player.getPlayerHand()
+      let indexSelectCard = Math.floor(Math.random() * botHand.length)
+      console.log(indexSelectCard)
+
       if (discardedCards[i] === '') {
         discardedCards[i] = botHand[indexSelectCard].getRank()
+        player.removeCard(indexSelectCard)
       }
     }
     console.log(discardedCards)
+    console.log(player.getPlayerHand())
   }
 }
 
@@ -147,7 +156,7 @@ const displayPlayedCards = () => {
 
           let cardImageElement = document.createElement('img')
 
-          cardImageElement.src = rankCard.getBackCardImage()
+          cardImageElement.src = rankCard.getCardImage()
 
           cardImageElement.alt = ''
           cardElement.setAttribute('id', rankCard.getRank())
@@ -181,6 +190,7 @@ players.forEach((player) => {
 selectCards(players[1])
 displayPlayedCards()
 console.log(`played cards ${discardedCards}`)
+
 //
 // eventListeners
 let listElement = [...playerOneHand.children]
