@@ -108,7 +108,16 @@ const deal = (players) => {
     hands = []
   })
 }
+const removeAllChild = (areaHtml) => {
+  let listElements = [...areaHtml.children]
+  if (listElements.length) {
+    while (areaHtml.firstChild) {
+      areaHtml.removeChild(areaHtml.firstChild)
+    }
+  }
+}
 const displayPlayerHand = (playerHandHtml, player) => {
+  removeAllChild(playerHandHtml)
   let playerHand = player.getPlayerHand()
   playerHand.forEach((card) => {
     let cardElement = document.createElement('li')
@@ -167,6 +176,12 @@ const displayPlayedCards = () => {
     }
   })
 }
+const removeEmptySpaces = (array) => {
+  let newArray = array.filter((listElement) => {
+    return listElement !== ''
+  })
+  return newArray
+}
 
 deckBuilder()
 shuffelDeck()
@@ -187,8 +202,8 @@ console.log(deck.length)
 players.forEach((player) => {
   displayPlayerHand(player.getPlayerHandHtml(), player)
 })
-selectCards(players[1])
-displayPlayedCards()
+// selectCards(players[1])
+// displayPlayedCards()
 console.log(`played cards ${discardedCards}`)
 
 //
@@ -197,7 +212,6 @@ let listElement = [...playerOneHand.children]
 
 listElement.forEach((li, index) => {
   li.children[0].addEventListener('click', () => {
-    console.log('hi')
     if (discardedCards[index] === '') {
       discardedCards[index] = li.id
     } else if (discardedCards[index] === li.id) {
@@ -208,5 +222,17 @@ listElement.forEach((li, index) => {
 })
 playCardsButton.addEventListener('click', () => {
   displayPlayedCards()
-  console.log(`played cards ${discardedCards}`)
+  discardedCards = removeEmptySpaces(discardedCards)
+  console.log(discardedCards)
+  discardedCards.forEach((playedCard) => {
+    let updatedHand = players[0].getPlayerHand()
+    updatedHand.forEach((handCard, index) => {
+      if (playedCard === handCard.getRank()) {
+        players[0].removeCard(index)
+      }
+    })
+  })
+
+  removeAllChild(players[0].getPlayerHandHtml())
+  displayPlayerHand(players[0].getPlayerHandHtml(), players[0])
 })
