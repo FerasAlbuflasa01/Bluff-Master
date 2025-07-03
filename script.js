@@ -188,6 +188,10 @@ const removeEmptySpaces = (array) => {
   let newArray = array.filter((listElement) => {
     return listElement !== ''
   })
+  let numOfEmptyStrings = array.length - newArray.length
+  for (let i = 0; i < numOfEmptyStrings; i++) {
+    newArray.push('')
+  }
   return newArray
 }
 
@@ -206,13 +210,14 @@ let arr2 = players[1].getPlayerHand()
 players.forEach((player) => {
   console.log(player.getPlayerHand())
 })
-console.log(deck.length)
+
 players.forEach((player) => {
   displayPlayerHand(player.getPlayerHandHtml(), player)
 })
 // selectCards(players[1])
 // displayPlayedCards()
-console.log(`played cards ${discardedCards}`)
+// displayPlayerHand(players[1].getPlayerHandHtml(), players[1])
+// console.log(`played cards ${discardedCards}`)
 
 //
 // eventListeners
@@ -234,13 +239,19 @@ playCardsButton.addEventListener('click', () => {
   displayPlayedCards()
   discardedCards = removeEmptySpaces(discardedCards)
   console.log(discardedCards)
-  discardedCards.forEach((playedCard) => {
+  discardedCards.forEach((playedCard, indexPlayed) => {
     let updatedHand = players[0].getPlayerHand()
-    updatedHand.forEach((handCard, index) => {
-      if (playedCard === handCard.getRank()) {
-        players[0].removeCard(index)
+
+    for (let i = 0; i < updatedHand.length; i++) {
+      if (playedCard === updatedHand[i].getRank()) {
+        players[0].removeCard(i)
+        break
       }
-    })
+    }
+  })
+  let playerHand = players[0].getPlayerHand()
+  playerHand.forEach((card) => {
+    console.log(card.getRank())
   })
 
   displayPlayerHand(players[0].getPlayerHandHtml(), players[0])
