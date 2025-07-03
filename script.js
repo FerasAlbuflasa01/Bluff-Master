@@ -22,6 +22,7 @@ class player {
     this.winCounter = 0
     this.bot = bot
     this.playerHandHtml = playerHandHtml
+    this.yourTurn = false
   }
   setWinCounter = (winCounter) => {
     this.winCounter = winCounter
@@ -30,8 +31,14 @@ class player {
   setPlayerHand = (hand) => {
     this.playerHand = hand
   }
+  setYourTurn = (yourTurn) => {
+    this.yourTurn = yourTurn
+  }
   getPlayerHandHtml = () => {
     return this.playerHandHtml
+  }
+  getYourTurn = () => {
+    return this.yourTurn
   }
 
   getPlayerHand = () => {
@@ -71,6 +78,7 @@ let rankCards = []
 let players = []
 let discardedCards = ['', '', '', '', '']
 let played = false
+let win = false
 
 let jCard = new card('J', 'cards/J.jpg')
 let qCard = new card('Q', 'cards/Q.jpg')
@@ -194,25 +202,47 @@ const removeEmptySpaces = (array) => {
   }
   return newArray
 }
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+const botTurn = (bot) => {
+  setTimeout(() => {
+    console.log('hi')
+    selectCards(bot)
+  }, 5000)
 
-deckBuilder()
-shuffelDeck()
-shuffelDeck()
+  setTimeout(() => {
+    displayPlayedCards()
+  }, 5000)
+
+  setTimeout(() => {
+    displayPlayerHand(bot.getPlayerHandHtml(), bot)
+  }, 5000)
+}
 
 let playerOne = new player(false, playerOneHand)
 let playerTwo = new player(true, playerTwoHand)
 let playerThree = new player(true, playerThreeHand)
 let playerFour = new player(true, playerFourHand)
-players = [playerOne, playerTwo, playerThree, playerFour]
-deal(players)
-let arr1 = players[0].getPlayerHand()
-let arr2 = players[1].getPlayerHand()
-players.forEach((player) => {
-  console.log(player.getPlayerHand())
-})
+players = [playerOne, playerFour, playerThree, playerTwo]
 
+deckBuilder()
+shuffelDeck()
+shuffelDeck()
+deal(players)
 players.forEach((player) => {
   displayPlayerHand(player.getPlayerHandHtml(), player)
+})
+let arr1 = players[0].getPlayerHand()
+let arr2 = players[1].getPlayerHand()
+
+for (let i = 1; i < players.length; i++) {
+  setTimeout(() => {
+    botTurn(players[i])
+  }, 30000)
+}
+players.forEach((player) => {
+  console.log(player.getPlayerHand())
 })
 // selectCards(players[1])
 // displayPlayedCards()
