@@ -33,6 +33,7 @@ class player {
   }
   setYourTurn = (yourTurn) => {
     this.yourTurn = yourTurn
+    return this.yourTurn
   }
   getPlayerHandHtml = () => {
     return this.playerHandHtml
@@ -79,7 +80,7 @@ let players = []
 let discardedCards = ['', '', '', '', '']
 let played = false
 let win = false
-
+let isplayerOneTurn = false
 let jCard = new card('J', 'cards/J.jpg')
 let qCard = new card('Q', 'cards/Q.jpg')
 let kCard = new card('K', 'cards/k.jpg')
@@ -202,22 +203,24 @@ const removeEmptySpaces = (array) => {
   }
   return newArray
 }
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+
 const botTurn = (bot) => {
-  setTimeout(() => {
-    console.log('hi')
-    selectCards(bot)
-  }, 5000)
+  selectCards(bot)
 
-  setTimeout(() => {
-    displayPlayedCards()
-  }, 5000)
+  displayPlayedCards()
 
-  setTimeout(() => {
-    displayPlayerHand(bot.getPlayerHandHtml(), bot)
-  }, 5000)
+  displayPlayerHand(bot.getPlayerHandHtml(), bot)
+}
+
+const Timer = () => {
+  let counter = 30
+  let id = setInterval(() => {
+    console.log(counter)
+    counter--
+    if (counter < 0) {
+      clearInterval(id)
+    }
+  }, 1000)
 }
 
 let playerOne = new player(false, playerOneHand)
@@ -235,11 +238,21 @@ players.forEach((player) => {
 })
 let arr1 = players[0].getPlayerHand()
 let arr2 = players[1].getPlayerHand()
-
-for (let i = 1; i < players.length; i++) {
-  setTimeout(() => {
-    botTurn(players[i])
-  }, 30000)
+let timeOutIDs = []
+// setTimeout in a loop solution from [https://how.dev/answers/how-to-add-a-delay-in-a-js-loop] under Example 1
+for (let i = 0; i < players.length; i++) {
+  let id = setTimeout(() => {
+    //console.log('perviuos ' + discardedCards)
+    Timer()
+    if (i === 0) {
+      isplayerOneTurn = players[0].setYourTurn(true)
+    } else {
+      botTurn(players[i])
+    }
+    console.log('current ' + discardedCards)
+  }, 30000 * i)
+  console.log(id)
+  timeOutIDs.push(id)
 }
 players.forEach((player) => {
   console.log(player.getPlayerHand())
@@ -251,38 +264,47 @@ players.forEach((player) => {
 
 //
 // eventListeners
+//
 let listElement = [...playerOneHand.children]
 
 listElement.forEach((li, index) => {
   li.children[0].addEventListener('click', () => {
-    // allows to select card
-    if (discardedCards[index] === '') {
-      discardedCards[index] = li.id
-      // allows to unselect card
-    } else if (discardedCards[index] === li.id) {
-      discardedCards[index] = ''
+    if (isplayerOneTurn) {
+      // allows to select card
+      if (discardedCards[index] === '') {
+        discardedCards[index] = li.id
+        // allows to unselect card
+      } else if (discardedCards[index] === li.id) {
+        discardedCards[index] = ''
+      }
+      console.log(discardedCards)
     }
-    console.log(discardedCards)
   })
 })
 playCardsButton.addEventListener('click', () => {
-  displayPlayedCards()
-  discardedCards = removeEmptySpaces(discardedCards)
-  console.log(discardedCards)
-  discardedCards.forEach((playedCard, indexPlayed) => {
-    let updatedHand = players[0].getPlayerHand()
+  if (isplayerOneTurn) {
+    displayPlayedCards()
+    discardedCards = removeEmptySpaces(discardedCards)
+    console.log(discardedCards)
+    discardedCards.forEach((playedCard, indexPlayed) => {
+      let updatedHand = players[0].getPlayerHand()
 
-    for (let i = 0; i < updatedHand.length; i++) {
-      if (playedCard === updatedHand[i].getRank()) {
-        players[0].removeCard(i)
-        break
+      for (let i = 0; i < updatedHand.length; i++) {
+        if (playedCard === updatedHand[i].getRank()) {
+          players[0].removeCard(i)
+          break
+        }
       }
-    }
-  })
-  let playerHand = players[0].getPlayerHand()
-  playerHand.forEach((card) => {
-    console.log(card.getRank())
-  })
+    })
+    let playerHand = players[0].getPlayerHand()
+    playerHand.forEach((card) => {
+      console.log(card.getRank())
+    })
 
-  displayPlayerHand(players[0].getPlayerHandHtml(), players[0])
+    displayPlayerHand(players[0].getPlayerHandHtml(), players[0])
+
+    isplayerOneTurn = players[0].setYourTurn(false)
+
+    clearTimeout(timeOutIDs[0])
+  }
 })
