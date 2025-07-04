@@ -69,7 +69,7 @@ class player {
 }
 //  global variables
 const playCardsButton = document.querySelector('#play')
-const playerOneHand = document.querySelector('#player1_hand_card')
+let playerOneHand = document.querySelector('#player1_hand_card')
 const playerTwoHand = document.querySelector('#player2_hand_card')
 const playerThreeHand = document.querySelector('#player3_hand_card')
 const playerFourHand = document.querySelector('#player4_hand_card')
@@ -86,10 +86,18 @@ let qCard = new card('Q', 'cards/Q.jpg')
 let kCard = new card('K', 'cards/k.jpg')
 let aceCard = new card('ACE', 'cards/ace.png')
 let jokerCard = new card('JOKER', 'cards/joker.jpg')
+let playerOne = new player(false, playerOneHand)
+let playerTwo = new player(true, playerTwoHand)
+let playerThree = new player(true, playerThreeHand)
+let playerFour = new player(true, playerFourHand)
+players = [playerOne, playerFour, playerThree, playerTwo]
+let timeOutIDs = []
 rankCards = [jCard, qCard, kCard, aceCard]
 
 // it builds a deck of cards by itterating each elements in rankCards array and create 5 copies of each rank card and after duplication add only one joker card
 const deckBuilder = () => {
+  deck = []
+  rankCards = [jCard, qCard, kCard, aceCard]
   rankCards.forEach((card) => {
     for (let i = 0; i < 5; i++) {
       deck.push(card)
@@ -119,6 +127,7 @@ const deal = (players) => {
     deck = deck.slice(5)
     player.setPlayerHand(hands)
     hands = []
+    displayPlayerHand(player.getPlayerHandHtml(), player)
   })
 }
 // the sloution got from GDN doucmentation [https://developer.mozilla.org/en-US/docs/Web/API/Node/removeChild]
@@ -203,8 +212,21 @@ const removeEmptySpaces = (array) => {
   }
   return newArray
 }
+let isBluff = false
+const botTurn = (bot, perviuosDiscard) => {
+  let numOfCards = 0
+  perviuosDiscard.forEach((card) => {
+    if (card !== '') {
+      numOfCards++
+    }
+  })
+  console.log(numOfCards)
 
-const botTurn = (bot) => {
+  if (numOfCards > 3) {
+    isBluff = true
+    console.log('lair shoot him!!!')
+    return
+  }
   selectCards(bot)
 
   displayPlayedCards()
@@ -222,41 +244,46 @@ const Timer = () => {
     }
   }, 1000)
 }
+const startRound = () => {
+  discardedCards = ['', '', '', '', '']
 
-let playerOne = new player(false, playerOneHand)
-let playerTwo = new player(true, playerTwoHand)
-let playerThree = new player(true, playerThreeHand)
-let playerFour = new player(true, playerFourHand)
-players = [playerOne, playerFour, playerThree, playerTwo]
-
-deckBuilder()
-shuffelDeck()
-shuffelDeck()
-deal(players)
-players.forEach((player) => {
-  displayPlayerHand(player.getPlayerHandHtml(), player)
-})
-let arr1 = players[0].getPlayerHand()
-let arr2 = players[1].getPlayerHand()
-let timeOutIDs = []
-// setTimeout in a loop solution from [https://how.dev/answers/how-to-add-a-delay-in-a-js-loop] under Example 1
-for (let i = 0; i < players.length; i++) {
-  let id = setTimeout(() => {
-    //console.log('perviuos ' + discardedCards)
-    Timer()
-    if (i === 0) {
-      isplayerOneTurn = players[0].setYourTurn(true)
-    } else {
-      botTurn(players[i])
-    }
-    console.log('current ' + discardedCards)
-  }, 30000 * i)
-  console.log(id)
-  timeOutIDs.push(id)
+  currentPlayerIndex = 0
+  isBluff = false
+  displayPlayedCards()
+  console.log(deck)
+  deckBuilder()
+  console.log(deck)
+  shuffelDeck()
+  shuffelDeck()
+  deal(players)
+  players.forEach((player) => {
+    displayPlayerHand(player.getPlayerHandHtml(), player)
+  })
 }
-players.forEach((player) => {
-  console.log(player.getPlayerHand())
-})
+// setTimeout in a loop solution from [https://how.dev/answers/how-to-add-a-delay-in-a-js-loop] under Example 1
+let currentPlayerIndex = 0
+let perviuos = []
+let id
+const playerTurn = () => {
+  console.log(`Player ${currentPlayerIndex + 1}'s turn!`)
+  if (currentPlayerIndex === 0) {
+    isplayerOneTurn = players[0].setYourTurn(true)
+    console.log(isplayerOneTurn)
+    attachImageListeners()
+  } else {
+    botTurn(players[currentPlayerIndex], perviuos)
+  }
+  currentPlayerIndex = (currentPlayerIndex + 1) % players.length
+  perviuos = discardedCards
+  if (isBluff) {
+    playerOneHand = document.querySelector('#player1_hand_card')
+    console.log('bang bang')
+    perviuos = []
+    startRound()
+  }
+  id = setTimeout(playerTurn, 30000)
+}
+
 // selectCards(players[1])
 // displayPlayedCards()
 // displayPlayerHand(players[1].getPlayerHandHtml(), players[1])
@@ -265,24 +292,30 @@ players.forEach((player) => {
 //
 // eventListeners
 //
-let listElement = [...playerOneHand.children]
-
-listElement.forEach((li, index) => {
-  li.children[0].addEventListener('click', () => {
-    if (isplayerOneTurn) {
-      // allows to select card
-      if (discardedCards[index] === '') {
-        discardedCards[index] = li.id
-        // allows to unselect card
-      } else if (discardedCards[index] === li.id) {
-        discardedCards[index] = ''
+startRound()
+playerTurn()
+function attachImageListeners() {
+  let listElement = [...playerOneHand.children]
+  discardedCards = ['', '', '', '', '']
+  listElement.forEach((li, index) => {
+    li.children[0].addEventListener('click', () => {
+      console.log(isplayerOneTurn)
+      if (isplayerOneTurn) {
+        // allows to select card
+        if (discardedCards[index] === '') {
+          discardedCards[index] = li.id
+          // allows to unselect card
+        } else if (discardedCards[index] === li.id) {
+          discardedCards[index] = ''
+        }
+        console.log(discardedCards)
       }
-      console.log(discardedCards)
-    }
+    })
   })
-})
+}
 playCardsButton.addEventListener('click', () => {
   if (isplayerOneTurn) {
+    perviuos = discardedCards
     displayPlayedCards()
     discardedCards = removeEmptySpaces(discardedCards)
     console.log(discardedCards)
@@ -305,6 +338,6 @@ playCardsButton.addEventListener('click', () => {
 
     isplayerOneTurn = players[0].setYourTurn(false)
 
-    clearTimeout(timeOutIDs[0])
+    // clearTimeout(id)
   }
 })
