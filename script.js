@@ -102,11 +102,17 @@ playerOne.setName('playerOne')
 let playerTwo = new player(true, playerTwoHand)
 let playerThree = new player(true, playerThreeHand)
 let playerFour = new player(true, playerFourHand)
-players = [playerOne, playerFour, playerThree, playerTwo]
+//players = [playerOne, playerFour, playerThree, playerTwo]
+players = [playerOne, playerFour]
 let timeOutIDs = []
 let tableRank
 rankCards = [jCard, qCard, kCard, aceCard]
 
+const choseTableRank = () => {
+  console.log(rankCards)
+  let randomPick = Math.floor(Math.random() * rankCards.length)
+  return rankCards[randomPick]
+}
 // it builds a deck of cards by itterating each elements in rankCards array and create 5 copies of each rank card and after duplication add only one joker card
 const deckBuilder = () => {
   deck = []
@@ -196,15 +202,25 @@ const selectCards = (player) => {
 // displayPlayedCards it displays the card that has been played it has functionalty as displayPlayerHand but without needing to check if player is bot or not since the played cards will be displayed as face down
 const displayPlayedCards = () => {
   removeAllChild(discardArea)
-  discardedCards.forEach((card) => {
+  let PlayedArea
+  if (Bluff) {
+    PlayedArea = perviuos
+  } else {
+    PlayedArea = discardedCards
+  }
+  PlayedArea.forEach((card) => {
     if (card) {
       rankCards.forEach((rankCard) => {
         if (rankCard.getRank() === card) {
           let cardElement = document.createElement('li')
 
           let cardImageElement = document.createElement('img')
-
-          cardImageElement.src = rankCard.getCardImage()
+          if (Bluff) {
+            console.log('flip!!')
+            cardImageElement.src = rankCard.getCardImage()
+          } else {
+            cardImageElement.src = rankCard.getBackCardImage()
+          }
 
           cardImageElement.alt = ''
           cardElement.setAttribute('id', rankCard.getRank())
@@ -262,12 +278,10 @@ const Timer = () => {
     }
   }, 1000)
 }
-const choseTableRank = () => {
-  let randomPick = Math.floor(Math.random() * rankCards.length - 1)
-  return rankCards[randomPick]
-}
+
 const startRound = () => {
   discardedCards = ['', '', '', '', '']
+  rankCards = [jCard, qCard, kCard, aceCard]
   currentPlayerIndex = 0
   Bluff = false
   tableRank = choseTableRank()
@@ -282,10 +296,12 @@ const startRound = () => {
   players.forEach((player) => {
     displayPlayerHand(player.getPlayerHandHtml(), player)
   })
+  attachBluff()
+  attachImageListeners()
 }
 function attachImageListeners() {
   let listElement = [...playerOneHand.children]
-  discardedCards = ['', '', '', '', '']
+
   listElement.forEach((li, index) => {
     li.children[0].addEventListener('click', () => {
       console.log(isplayerOneTurn)
@@ -302,32 +318,25 @@ function attachImageListeners() {
     })
   })
 }
-const getPreviousIndex = (currentIndex) => {
-  return (currentIndex - 1) % players.length
+const attachBluff = () => {
+  PlayerOneBluff.addEventListener('click', () => {
+    if (isplayerOneTurn && perviuos[0] !== '') {
+      discardedCards = ['', '', '', '', '']
+      Bluff = true
+      bluffLogic()
+      Bluff = false
+      isplayerOneTurn = players[0].setYourTurn(false)
+    }
+  })
 }
-// setTimeout in a loop solution from [https://how.dev/answers/how-to-add-a-delay-in-a-js-loop] under Example 1
 let currentPlayerIndex = 0
 let perviuos = []
 let perviuosPlayerIndex = 0
 let id
-const playerTurn = () => {
-  if (players.length === 1) {
-    console.log(players[currentPlayerIndex] + ' wins!')
-    return
-  }
-  console.log(`Player ${currentPlayerIndex + 1}'s turn!`)
-  if (players[currentPlayerIndex].getName() === 'playerOne') {
-    isplayerOneTurn = players[0].setYourTurn(true)
-    console.log(isplayerOneTurn)
-    attachImageListeners()
-  } else {
-    botTurn(players[currentPlayerIndex], perviuos)
-  }
-
-  perviuos = discardedCards
-
-  if (Bluff) {
-    let countMactingRanks = 0
+const bluffLogic = () => {
+  let countMactingRanks = 0
+  displayPlayedCards()
+  setTimeout(() => {
     perviuos.forEach((cardRank) => {
       if (cardRank === tableRank.getRank() || cardRank === 'JOKER') {
         countMactingRanks++
@@ -354,9 +363,21 @@ const playerTurn = () => {
     }
     if (players[currentPlayerIndex].getHealth() === 0) {
       discardedCards = ['', '', '', '', '']
+      let hand = []
+      players[currentPlayerIndex].setPlayerHand(hand)
+      displayPlayerHand(
+        players[currentPlayerIndex].getPlayerHandHtml(),
+        players[currentPlayerIndex]
+      )
       players.splice(currentPlayerIndex, 1)
     } else if (players[perviuosPlayerIndex].getHealth() === 0) {
       discardedCards = ['', '', '', '', '']
+      let hand = []
+      players[perviuosPlayerIndex].setPlayerHand(hand)
+      displayPlayerHand(
+        players[perviuosPlayerIndex].getPlayerHandHtml(),
+        players[perviuosPlayerIndex]
+      )
       players.splice(perviuosPlayerIndex, 1)
     }
 
@@ -365,18 +386,48 @@ const playerTurn = () => {
     perviuos = []
 
     startRound()
+  }, 10000)
+}
+const getPreviousIndex = (currentIndex) => {
+  if (currentIndex === 0) {
+    return players.length - 1
+  }
+  return (currentIndex - 1) % players.length
+}
+// setTimeout in a loop solution from [https://how.dev/answers/how-to-add-a-delay-in-a-js-loop] under Example 1
+
+const playerTurn = () => {
+  if (players.length === 1) {
+    console.log(players[currentPlayerIndex] + ' wins!')
+    return
+  }
+  console.log(`Player ${currentPlayerIndex + 1}'s turn!`)
+  if (players[currentPlayerIndex].getName() === 'playerOne') {
+    isplayerOneTurn = players[0].setYourTurn(true)
+    console.log(isplayerOneTurn)
+  } else {
+    botTurn(players[currentPlayerIndex], perviuos)
+  }
+
+  perviuos = discardedCards
+
+  if (Bluff) {
+    bluffLogic()
   }
   if (players[currentPlayerIndex].getPlayerHand().length === 0) {
     perviuos = []
 
     startRound()
   }
+  console.log(currentPlayerIndex)
 
-  currentPlayerIndex = (currentPlayerIndex + 1) % players.length
+  console.log(currentPlayerIndex)
 
   id = setTimeout(() => {
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length
+
     playerTurn()
-  }, 20000)
+  }, 40000)
 }
 
 //
@@ -411,11 +462,5 @@ playCardsButton.addEventListener('click', () => {
     isplayerOneTurn = players[0].setYourTurn(false)
 
     // clearTimeout(id)
-  }
-})
-PlayerOneBluff.addEventListener('click', () => {
-  if (isplayerOneTurn && discardedCards[0] !== '') {
-    Bluff = true
-    isplayerOneTurn = players[0].setYourTurn(false)
   }
 })
