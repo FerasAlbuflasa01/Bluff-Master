@@ -102,8 +102,8 @@ playerOne.setName('playerOne')
 let playerTwo = new player(true, playerTwoHand)
 let playerThree = new player(true, playerThreeHand)
 let playerFour = new player(true, playerFourHand)
-//players = [playerOne, playerFour, playerThree, playerTwo]
-players = [playerOne, playerFour]
+players = [playerOne, playerFour, playerThree, playerTwo]
+//players = [playerOne, playerFour]
 let timeOutIDs = []
 let tableRank
 rankCards = [jCard, qCard, kCard, aceCard]
@@ -212,20 +212,34 @@ const displayPlayedCards = () => {
     if (card) {
       rankCards.forEach((rankCard) => {
         if (rankCard.getRank() === card) {
-          let cardElement = document.createElement('li')
+          const cardElement = document.createElement('div')
+          cardElement.classList.add('card')
 
-          let cardImageElement = document.createElement('img')
+          const front = document.createElement('li')
+          front.classList.add('front')
+          const frontImage = document.createElement('img')
+          frontImage.src = rankCard.getCardImage()
+          frontImage.alt = 'Front'
+          front.appendChild(frontImage)
+
+          const back = document.createElement('li')
+          back.classList.add('back')
+          const backImage = document.createElement('img')
+          backImage.src = rankCard.getBackCardImage()
+          backImage.alt = 'Back'
+          back.appendChild(backImage)
+          cardElement.appendChild(back)
+          cardElement.appendChild(front)
+
+          discardArea.appendChild(cardElement)
+
           if (Bluff) {
             console.log('flip!!')
-            cardImageElement.src = rankCard.getCardImage()
-          } else {
-            cardImageElement.src = rankCard.getBackCardImage()
-          }
 
-          cardImageElement.alt = ''
-          cardElement.setAttribute('id', rankCard.getRank())
-          cardElement.appendChild(cardImageElement)
-          discardArea.appendChild(cardElement)
+            setTimeout(() => {
+              cardElement.classList.add('is-flipped')
+            }, 600)
+          }
         }
       })
     }
@@ -427,7 +441,7 @@ const playerTurn = () => {
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length
 
     playerTurn()
-  }, 40000)
+  }, 30000)
 }
 
 //
@@ -460,7 +474,5 @@ playCardsButton.addEventListener('click', () => {
     displayPlayerHand(players[0].getPlayerHandHtml(), players[0])
 
     isplayerOneTurn = players[0].setYourTurn(false)
-
-    // clearTimeout(id)
   }
 })
