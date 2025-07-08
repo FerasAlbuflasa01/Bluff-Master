@@ -119,14 +119,12 @@ playerThree.setName('bot2')
 let playerFour = new player(true, playerFourHand, playerFourInfo)
 playerFour.setName('bot1')
 players = [playerOne, playerFour, playerThree, playerTwo]
-//players = [playerOne, playerFour]
 let timeOutIDs = []
 let tableRank
 rankCards = [jCard, qCard, kCard, aceCard]
 let isStartRound = true
 
 const choseTableRank = () => {
-  console.log(rankCards)
   let randomPick = Math.floor(Math.random() * rankCards.length)
   return rankCards[randomPick]
 }
@@ -191,7 +189,7 @@ const displayPlayerHand = async (playerHandHtml, player) => {
 
     let cardImageElement = document.createElement('img')
     if (player.isBot()) {
-      cardImageElement.src = card.getCardImage()
+      cardImageElement.src = card.getBackCardImage()
     } else {
       cardImageElement.src = card.getCardImage()
     }
@@ -201,10 +199,7 @@ const displayPlayerHand = async (playerHandHtml, player) => {
 
     if (isStartRound) {
       cardElement.classList.add('playerCard')
-      cardElement.classList.toggle('animation') // Add animation class after the delay
-      // await delay(1000)
-      // cardElement.classList.remove('playerCard')
-      // cardElement.classList.remove('animation')
+      cardElement.classList.toggle('animation')
     }
     cardElement.appendChild(cardImageElement)
     playerHandHtml.appendChild(cardElement)
@@ -221,7 +216,6 @@ const selectCards = (player) => {
     for (let i = 0; i < numOfCards; i++) {
       //botHand.length to make suer that array lentgth is being updated after removing a card
       let indexSelectCard = Math.floor(Math.random() * botHand.length)
-      console.log('card index= ' + indexSelectCard)
       if (discardedCards[i] === '') {
         discardedCards[i] = botHand[indexSelectCard].getRank()
         //to make suer that bot doesn't select the same cards at the some position twice
@@ -235,8 +229,6 @@ const isCorrectUi = (array) => {
   let cardDiv = document.querySelectorAll('.card')
 
   let cardDivArray = [...cardDiv]
-  console.log(cardDivArray)
-  console.log(array)
   array.forEach((card) => {
     cardDivArray[card].children[0].children[0].style.border = '5px solid green'
     cardDivArray[card].children[1].children[0].style.border = '5px solid green'
@@ -279,7 +271,6 @@ const displayPlayedCards = () => {
           discardArea.appendChild(cardElement)
 
           if (Bluff) {
-            console.log('flip!!')
             delay(3000).then(() => {
               cardElement.classList.add('is-flipped')
             })
@@ -312,12 +303,11 @@ const countCards = (arr) => {
 let Bluff = false
 const botTurn = async (bot, perviuosDiscard) => {
   let numOfCards = countCards(perviuosDiscard)
-  console.log(numOfCards)
   let randomBluff = Math.floor(Math.random() * 2)
   if (randomBluff === 1 && perviuosDiscard.length !== 0) {
     Bluff = true
     document.querySelector('#message').innerText = 'lair shoot him!!!'
-    console.log('lair shoot him!!!')
+
     return
   }
   selectCards(bot)
@@ -327,30 +317,19 @@ const botTurn = async (bot, perviuosDiscard) => {
   displayPlayedCards()
 }
 let stopTimer = false
-const Timer = () => {
-  let counter = 30
-  let id = setInterval(() => {
-    console.log(counter)
-    counter--
-    if (stopTimer) {
-      clearInterval(id)
-    }
-  }, 1000)
-}
-
 const startRound = async () => {
   discardedCards = ['', '', '', '', '']
   rankCards = [jCard, qCard, kCard, aceCard]
-  //currentPlayerIndex = 0
+
   Bluff = false
   isStartRound = true
   tableRank = choseTableRank()
   showRank.innerText = `${tableRank.getRank()} Tabe`
   displayPlayedCards()
   MatchIndexes = []
-  console.log(deck)
+
   deckBuilder()
-  console.log(deck)
+
   shuffelDeck()
   shuffelDeck()
   deal(players)
@@ -363,7 +342,6 @@ attachImageListeners = () => {
 
   listElement.forEach((li, index) => {
     li.children[0].addEventListener('click', () => {
-      console.log(isplayerOneTurn)
       if (isplayerOneTurn) {
         // allows to select card
         if (discardedCards[index] === '') {
@@ -374,7 +352,6 @@ attachImageListeners = () => {
           li.children[0].style.border = ''
           discardedCards[index] = ''
         }
-        console.log(discardedCards)
       }
     })
   })
@@ -429,28 +406,22 @@ const bluffLogic = () => {
 
   let numOfCards = countCards(perviuos)
   perviuosPlayerIndex = getPreviousIndex(currentPlayerIndex)
-  console.log(countMactingRanks + ' =?' + numOfCards)
+
   if (countMactingRanks === numOfCards && numOfCards !== 0) {
     let health = players[currentPlayerIndex].getHealth()
     health--
     players[currentPlayerIndex].setHealth(health)
-    console.log(
-      'current player health ' + players[currentPlayerIndex].getHealth()
-    )
+
     updateHealthUi(players[currentPlayerIndex].getPlayerInfoHtml(), health)
   } else if (numOfCards !== 0) {
     let health = players[perviuosPlayerIndex].getHealth()
     health--
-    console.log('pervious index= ' + perviuosPlayerIndex)
+
     players[perviuosPlayerIndex].setHealth(health)
-    console.log(
-      'pervious player health ' + players[perviuosPlayerIndex].getHealth()
-    )
+
     updateHealthUi(players[perviuosPlayerIndex].getPlayerInfoHtml(), health)
   }
 
-  console.log(players)
-  console.log('bang bang')
   perviuos = []
 
   delay(7000).then(() => {
@@ -472,7 +443,6 @@ const playerTurn = async () => {
 
   document.querySelector('#message').innerText = ''
   if (players.length === 1) {
-    console.log(players[currentPlayerIndex] + ' wins!')
     if (players[currentPlayerIndex].getName() === 'playerOne') {
       document.querySelector('#turn').innerText = 'You Won!!!'
     } else {
@@ -490,7 +460,7 @@ const playerTurn = async () => {
   document.querySelector('#turn').innerText = `${players[
     currentPlayerIndex
   ].getName()}'s turn!`
-  console.log(`Player ${currentPlayerIndex + 1}'s turn!`)
+
   if (players[currentPlayerIndex].getName() === 'playerOne') {
     let count = 15
     playerId = setInterval(() => {
@@ -502,7 +472,6 @@ const playerTurn = async () => {
     }, 1000)
     document.querySelector('#turn').innerText = `your turn!`
     isplayerOneTurn = players[0].setYourTurn(true)
-    console.log(isplayerOneTurn)
   } else {
     document.querySelector('#timer').innerText = ``
     botTurn(players[currentPlayerIndex], perviuos)
@@ -578,7 +547,6 @@ playCardsButton.addEventListener('click', () => {
     perviuos = discardedCards
     displayPlayedCards()
     discardedCards = removeEmptySpaces(discardedCards)
-    console.log(discardedCards)
     discardedCards.forEach((playedCard, indexPlayed) => {
       let updatedHand = players[0].getPlayerHand()
 
@@ -588,10 +556,6 @@ playCardsButton.addEventListener('click', () => {
           break
         }
       }
-    })
-    let playerHand = players[0].getPlayerHand()
-    playerHand.forEach((card) => {
-      console.log(card.getRank())
     })
 
     displayPlayerHand(players[0].getPlayerHandHtml(), players[0])
