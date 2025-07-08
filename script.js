@@ -2,7 +2,7 @@ class card {
   constructor(rank, cardImage) {
     this.cardImage = cardImage
     this.rank = rank
-    this.backCard = 'cards/backCard.jpg'
+    this.backCard = 'cards/backCard.png'
   }
   getRank = () => {
     return this.rank
@@ -105,9 +105,9 @@ let players = []
 let discardedCards = ['', '', '', '', '']
 let win = false
 let isplayerOneTurn = false
-let jCard = new card('J', 'cards/J.jpg')
-let qCard = new card('Q', 'cards/Q.jpg')
-let kCard = new card('K', 'cards/k.jpg')
+let jCard = new card('J', 'cards/J.png')
+let qCard = new card('Q', 'cards/Q.png')
+let kCard = new card('K', 'cards/k.png')
 let aceCard = new card('ACE', 'cards/ace.png')
 let jokerCard = new card('JOKER', 'cards/joker.jpg')
 let playerOne = new player(false, playerOneHand, playerOneInfo)
@@ -196,15 +196,10 @@ const displayPlayerHand = async (playerHandHtml, player) => {
 
     cardImageElement.alt = ''
     cardElement.setAttribute('id', card.getRank())
-
-    if (isStartRound) {
-      cardElement.classList.add('playerCard')
-      cardElement.classList.toggle('animation')
-    }
     cardElement.appendChild(cardImageElement)
     playerHandHtml.appendChild(cardElement)
   }
-  await delay(2000)
+
   isStartRound = false
 }
 // selectCards is built for bots where it selects how many cards that it wants to play(randomly) and then select cards from the hand(randomly) and play them(save them in discardedCards array).
@@ -375,7 +370,7 @@ let perviuos = []
 let perviuosPlayerIndex = 0
 let id
 const updateHealthUi = (playerIndex, playerHealth) => {
-  let playerHearts = playerIndex.children[2]
+  let playerHearts = playerIndex.children[1]
   if (playerHealth === 2) {
     playerHearts.querySelector(`#heart${playerHealth + 1}`).style.color =
       'black'
