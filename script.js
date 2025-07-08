@@ -23,6 +23,7 @@ class player {
     this.bot = bot
     this.playerHandHtml = playerHandHtml
     this.yourTurn = false
+    this.forcedBluff = false
     this.name = ''
     this.playerInfoHtml = playerInfoHtml
   }
@@ -39,6 +40,10 @@ class player {
   setYourTurn = (yourTurn) => {
     this.yourTurn = yourTurn
     return this.yourTurn
+  }
+  setforcedToBluff = (forcedBluff) => {
+    this.forcedBluff = forcedBluff
+    return this.forcedBluff
   }
   setHealth = (health) => {
     this.health = health
@@ -108,13 +113,17 @@ let jokerCard = new card('JOKER', 'cards/joker.jpg')
 let playerOne = new player(false, playerOneHand, playerOneInfo)
 playerOne.setName('playerOne')
 let playerTwo = new player(true, playerTwoHand, playerTwoInfo)
+playerTwo.setName('bot3')
 let playerThree = new player(true, playerThreeHand, playerThreeInfo)
+playerThree.setName('bot2')
 let playerFour = new player(true, playerFourHand, playerFourInfo)
+playerFour.setName('bot1')
 players = [playerOne, playerFour, playerThree, playerTwo]
 //players = [playerOne, playerFour]
 let timeOutIDs = []
 let tableRank
 rankCards = [jCard, qCard, kCard, aceCard]
+let isStartRound = true
 
 const choseTableRank = () => {
   console.log(rankCards)
@@ -154,6 +163,7 @@ const deal = (players) => {
     deck = deck.slice(5)
     player.setPlayerHand(hands)
     hands = []
+
     displayPlayerHand(player.getPlayerHandHtml(), player)
   })
 }
@@ -168,12 +178,15 @@ const removeAllChild = (areaHtml) => {
     }
   }
 }
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 // displayPlayerHand shows the player's card in html
 //first it check if there is any list items by the help of removeAllChild function and after that it creates list item for each card that player has and then append to the parent
-const displayPlayerHand = (playerHandHtml, player) => {
+const displayPlayerHand = async (playerHandHtml, player) => {
   removeAllChild(playerHandHtml)
   let playerHand = player.getPlayerHand()
-  playerHand.forEach((card) => {
+  for (let card of playerHand) {
     let cardElement = document.createElement('li')
 
     let cardImageElement = document.createElement('img')
@@ -185,9 +198,19 @@ const displayPlayerHand = (playerHandHtml, player) => {
 
     cardImageElement.alt = ''
     cardElement.setAttribute('id', card.getRank())
+
+    if (isStartRound) {
+      cardElement.classList.add('playerCard')
+      cardElement.classList.toggle('animation') // Add animation class after the delay
+      // await delay(1000)
+      // cardElement.classList.remove('playerCard')
+      // cardElement.classList.remove('animation')
+    }
     cardElement.appendChild(cardImageElement)
     playerHandHtml.appendChild(cardElement)
-  })
+  }
+  await delay(2000)
+  isStartRound = false
 }
 // selectCards is built for bots where it selects how many cards that it wants to play(randomly) and then select cards from the hand(randomly) and play them(save them in discardedCards array).
 const selectCards = (player) => {
@@ -219,9 +242,7 @@ const isCorrectUi = (array) => {
     cardDivArray[card].children[1].children[0].style.border = '5px solid green'
   })
 }
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
+
 // displayPlayedCards it displays the card that has been played it has functionalty as displayPlayerHand but without needing to check if player is bot or not since the played cards will be displayed as face down
 const displayPlayedCards = () => {
   removeAllChild(discardArea)
@@ -235,6 +256,7 @@ const displayPlayedCards = () => {
     if (card) {
       rankCards.forEach((rankCard) => {
         if (rankCard.getRank() === card) {
+          delay(4000)
           const cardElement = document.createElement('div')
           cardElement.classList.add('card')
 
@@ -288,22 +310,21 @@ const countCards = (arr) => {
   return numOfCards
 }
 let Bluff = false
-const botTurn = (bot, perviuosDiscard) => {
+const botTurn = async (bot, perviuosDiscard) => {
   let numOfCards = countCards(perviuosDiscard)
   console.log(numOfCards)
-
-  if (numOfCards > 3) {
+  let randomBluff = Math.floor(Math.random() * 2)
+  if (randomBluff === 1 && perviuosDiscard.length !== 0) {
     Bluff = true
+    document.querySelector('#message').innerText = 'lair shoot him!!!'
     console.log('lair shoot him!!!')
     return
   }
   selectCards(bot)
-  delay(2000).then(() => {
-    displayPlayerHand(bot.getPlayerHandHtml(), bot)
-  })
-  delay(2000).then(() => {
-    displayPlayedCards()
-  })
+
+  displayPlayerHand(bot.getPlayerHandHtml(), bot)
+
+  displayPlayedCards()
 }
 let stopTimer = false
 const Timer = () => {
@@ -317,11 +338,12 @@ const Timer = () => {
   }, 1000)
 }
 
-const startRound = () => {
+const startRound = async () => {
   discardedCards = ['', '', '', '', '']
   rankCards = [jCard, qCard, kCard, aceCard]
   //currentPlayerIndex = 0
   Bluff = false
+  isStartRound = true
   tableRank = choseTableRank()
   showRank.innerText = `${tableRank.getRank()} Tabe`
   displayPlayedCards()
@@ -332,13 +354,11 @@ const startRound = () => {
   shuffelDeck()
   shuffelDeck()
   deal(players)
-  players.forEach((player) => {
-    displayPlayerHand(player.getPlayerHandHtml(), player)
-  })
+
   attachBluff()
   attachImageListeners()
 }
-function attachImageListeners() {
+attachImageListeners = () => {
   let listElement = [...playerOneHand.children]
 
   listElement.forEach((li, index) => {
@@ -348,8 +368,10 @@ function attachImageListeners() {
         // allows to select card
         if (discardedCards[index] === '') {
           discardedCards[index] = li.id
+          li.children[0].style.border = '5px solid green'
           // allows to unselect card
         } else if (discardedCards[index] === li.id) {
+          li.children[0].style.border = ''
           discardedCards[index] = ''
         }
         console.log(discardedCards)
@@ -366,6 +388,7 @@ const attachBluff = () => {
       Bluff = false
       isplayerOneTurn = players[0].setYourTurn(false)
       stopTimer = true
+      document.querySelector('#turn').innerText = 'lair shoot him!!!'
     }
   })
 }
@@ -382,9 +405,11 @@ const updateHealthUi = (playerIndex, playerHealth) => {
   } else if (playerHealth === 1) {
     playerHearts.querySelector(`#heart${playerHealth + 1}`).style.color =
       'black'
-  } else {
+  } else if (playerHealth === 0) {
     playerHearts.querySelector(`#heart${playerHealth + 1}`).style.color =
       'black'
+  } else {
+    return
   }
 }
 const bluffLogic = () => {
@@ -398,13 +423,14 @@ const bluffLogic = () => {
   })
   displayPlayedCards()
   delay(5000).then(() => {
+    document.querySelector('#message').innerText = ''
     isCorrectUi(MatchIndexes)
   })
 
   let numOfCards = countCards(perviuos)
   perviuosPlayerIndex = getPreviousIndex(currentPlayerIndex)
   console.log(countMactingRanks + ' =?' + numOfCards)
-  if (countMactingRanks === numOfCards) {
+  if (countMactingRanks === numOfCards && numOfCards !== 0) {
     let health = players[currentPlayerIndex].getHealth()
     health--
     players[currentPlayerIndex].setHealth(health)
@@ -412,7 +438,7 @@ const bluffLogic = () => {
       'current player health ' + players[currentPlayerIndex].getHealth()
     )
     updateHealthUi(players[currentPlayerIndex].getPlayerInfoHtml(), health)
-  } else {
+  } else if (numOfCards !== 0) {
     let health = players[perviuosPlayerIndex].getHealth()
     health--
     console.log('pervious index= ' + perviuosPlayerIndex)
@@ -421,27 +447,6 @@ const bluffLogic = () => {
       'pervious player health ' + players[perviuosPlayerIndex].getHealth()
     )
     updateHealthUi(players[perviuosPlayerIndex].getPlayerInfoHtml(), health)
-  }
-  if (players[currentPlayerIndex].getHealth() === 0) {
-    updateHealthUi(players[currentPlayerIndex].getPlayerInfoHtml(), 0)
-    discardedCards = ['', '', '', '', '']
-    let hand = []
-    players[currentPlayerIndex].setPlayerHand(hand)
-    displayPlayerHand(
-      players[currentPlayerIndex].getPlayerHandHtml(),
-      players[currentPlayerIndex]
-    )
-    players.splice(currentPlayerIndex, 1)
-  } else if (players[perviuosPlayerIndex].getHealth() === 0) {
-    updateHealthUi(players[perviuosPlayerIndex].getPlayerInfoHtml(), 0)
-    discardedCards = ['', '', '', '', '']
-    let hand = []
-    players[perviuosPlayerIndex].setPlayerHand(hand)
-    displayPlayerHand(
-      players[perviuosPlayerIndex].getPlayerHandHtml(),
-      players[perviuosPlayerIndex]
-    )
-    players.splice(perviuosPlayerIndex, 1)
   }
 
   console.log(players)
@@ -460,21 +465,46 @@ const getPreviousIndex = (currentIndex) => {
 }
 
 // setTimeout in a loop solution from [https://how.dev/answers/how-to-add-a-delay-in-a-js-loop] under Example 1
+let playerId
+const playerTurn = async () => {
+  await delay(2000)
+  stopTimer = false
 
-const playerTurn = () => {
+  document.querySelector('#message').innerText = ''
   if (players.length === 1) {
     console.log(players[currentPlayerIndex] + ' wins!')
+    if (players[currentPlayerIndex].getName() === 'playerOne') {
+      document.querySelector('#turn').innerText = 'You Won!!!'
+    } else {
+      document.querySelector(
+        '#turn'
+      ).innerText = `${players[0].getName()} Won!!!`
+    }
+
     return
+  } else if (players.length === 0) {
+    perviuos = []
+    startRound()
   }
 
-  document.querySelector('#turn').innerText = `Player ${
-    currentPlayerIndex + 1
-  }'s turn!`
+  document.querySelector('#turn').innerText = `${players[
+    currentPlayerIndex
+  ].getName()}'s turn!`
   console.log(`Player ${currentPlayerIndex + 1}'s turn!`)
   if (players[currentPlayerIndex].getName() === 'playerOne') {
+    let count = 15
+    playerId = setInterval(() => {
+      document.querySelector('#timer').innerText = `Timer: ${count}`
+      count--
+      if (stopTimer) {
+        clearInterval(playerId)
+      }
+    }, 1000)
+    document.querySelector('#turn').innerText = `your turn!`
     isplayerOneTurn = players[0].setYourTurn(true)
     console.log(isplayerOneTurn)
   } else {
+    document.querySelector('#timer').innerText = ``
     botTurn(players[currentPlayerIndex], perviuos)
   }
 
@@ -489,17 +519,59 @@ const playerTurn = () => {
     startRound()
   }
 
-  delay(15000).then(() => {
-    currentPlayerIndex = (currentPlayerIndex + 1) % players.length
-    playerTurn()
-  })
+  await delay(15000)
+  stopTimer = false
+  clearInterval(playerId)
+  if (players[currentPlayerIndex].getYourTurn()) {
+    document.querySelector('#message').innerText =
+      'Timer is up, -1 to your health'
+    await delay(4000)
+    let health = players[currentPlayerIndex].getHealth()
+    health--
+    isplayerOneTurn = players[0].setYourTurn(false)
+    perviuos = []
+    players[currentPlayerIndex].setHealth(health)
+    updateHealthUi(players[currentPlayerIndex].getPlayerInfoHtml(), health)
+
+    document.querySelector('#message').innerText = ''
+  }
+  if (players[currentPlayerIndex].getHealth() === 0) {
+    updateHealthUi(players[currentPlayerIndex].getPlayerInfoHtml(), 0)
+    discardedCards = ['', '', '', '', '']
+    let hand = []
+    players[currentPlayerIndex].setPlayerHand(hand)
+    displayPlayerHand(
+      players[currentPlayerIndex].getPlayerHandHtml(),
+      players[currentPlayerIndex]
+    )
+    players.splice(currentPlayerIndex, 1)
+  }
+  if (players[perviuosPlayerIndex].getHealth() === 0) {
+    updateHealthUi(players[perviuosPlayerIndex].getPlayerInfoHtml(), 0)
+    discardedCards = ['', '', '', '', '']
+    let hand = []
+    players[perviuosPlayerIndex].setPlayerHand(hand)
+    displayPlayerHand(
+      players[perviuosPlayerIndex].getPlayerHandHtml(),
+      players[perviuosPlayerIndex]
+    )
+    players.splice(perviuosPlayerIndex, 1)
+  }
+
+  currentPlayerIndex = (currentPlayerIndex + 1) % players.length
+
+  playerTurn()
 }
+const firstRound = async () => {
+  startRound()
+  await delay(8000)
+  playerTurn()
+}
+firstRound()
 
 //
 // eventListeners
 //
-startRound()
-playerTurn()
 
 playCardsButton.addEventListener('click', () => {
   if (isplayerOneTurn) {
